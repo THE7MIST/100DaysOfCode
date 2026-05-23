@@ -40,7 +40,7 @@ Containers are lightweight, portable, and consistent across systems.
 
 ---
 
-# Lab 1 — Docker Basics
+# Lab 1 : Docker Basics
 
 ---
 
@@ -441,7 +441,7 @@ Performed complete Docker cleanup process.
 
 ---
 
-# Lab 2 — Docker Run & Networking
+# Lab 2 : Docker Run & Networking
 
 ---
 

@@ -1,4 +1,4 @@
-# Docker Labs — Day 1
+# Docker Labs : Day 1
 
 ## Overview
 

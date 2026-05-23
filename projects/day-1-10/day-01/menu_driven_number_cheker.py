@@ -6,9 +6,6 @@
 # 2. Prime Number Check
 # 3. Armstrong Number Check
 # 4. Perfect Number Check
-#
-# The code is written in simple way
-# with easy comments for beginners.
 # ============================================
 
 # Infinite loop so menu keeps showing

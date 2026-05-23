@@ -8,9 +8,6 @@
 # 2. Prime Number Check
 # 3. Armstrong Number Check
 # 4. Perfect Number Check
-#
-# The script uses simple logic and comments
-# so beginners can easily understand it.
 # ============================================
 
 # Infinite loop so menu keeps showing

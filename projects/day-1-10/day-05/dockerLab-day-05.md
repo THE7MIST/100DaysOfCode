@@ -1,67 +1,100 @@
 # Docker Lab 8 and Docker Lab 9
-## Docker Registry, Image Management, Docker Networking, and Multi-Container Communication
+
+## Docker Registry, Docker Networking, Multi-Container Communication, and Custom Networks
+
+---
 
 # Introduction
 
-This document contains detailed explanations, command breakdowns, concepts, architecture, and practical understanding from Docker Lab 8 and Docker Lab 9.
+This document contains detailed notes, commands, explanations, and concepts from Docker Lab 8 and Docker Lab 9.
 
 The labs focused on:
 - Docker Registry
-- Image storage and distribution
-- Docker image tagging and pushing
-- Private registry deployment
+- Docker image management
+- Image tagging and pushing
+- Local private registry setup
 - Docker networking
 - Bridge networking
 - Host networking
 - None networking
 - Custom Docker networks
-- Multi-container communication
+- Multi-container application deployment
 - MySQL container deployment
-- Web application deployment
-- Environment variables
-- Port mapping
+- Web application networking
 
-These labs provided practical understanding of how Docker images are distributed and how containers communicate inside Docker networks.
+These labs provide practical understanding of Docker image distribution systems and Docker networking architecture.
 
 ---
 
 # Docker Lab 8
-# Docker Registry and Image Distribution
 
-# What is a Docker Registry?
+# Docker Registry
 
-A Docker Registry is a storage and distribution system for Docker images.
+## Question 2
 
-Registries allow users to:
-- upload Docker images
-- download Docker images
-- store versions
-- share containerized applications
+### Question
 
-Examples:
-- Docker Hub
-- AWS ECR
-- Azure Container Registry
-- Private Docker Registry
+What is a Docker Registry?
 
 ---
 
-# Important Docker Registry Concepts
+## Answer
+
+A Docker Registry is a storage and distribution system for Docker images.
+
+---
+
+## Explanation
+
+Docker registries allow users to:
+- store images
+- download images
+- upload images
+- share images across systems
+
+Docker images are stored in repositories inside registries.
+
+---
+
+## Examples of Docker Registries
+
+| Registry | Purpose |
+|---|---|
+| Docker Hub | Public Docker registry |
+| AWS ECR | Amazon Elastic Container Registry |
+| Azure Container Registry | Microsoft container registry |
+| Private Registry | Self-hosted Docker registry |
+
+---
+
+## Important Terms
 
 | Term | Meaning |
 |---|---|
 | Docker Image | Read-only template used to create containers |
-| Registry | Storage location for Docker images |
+| Registry | Storage system for Docker images |
 | Repository | Collection of image versions |
-| Tag | Version label of image |
+| Tag | Version label for image |
 
 ---
 
-# Docker Hub
+# Question 3
 
-Docker Hub is Docker’s default public registry.
+## Question
 
-When executing:
+By default, the Docker Engine interacts with which registry?
+
+---
+
+## Correct Answer
+
+Docker Engine interacts with Docker Hub by default.
+
+---
+
+## Explanation
+
+When users run:
 
 ```bash
 docker pull nginx
@@ -73,15 +106,36 @@ Docker automatically searches:
 docker.io/library/nginx
 ```
 
-This means Docker communicates with Docker Hub unless another registry is specified.
+This means Docker connects to Docker Hub unless another registry is specified.
 
 ---
 
-# Docker Login
+## Full Forms
 
-Docker login authenticates the Docker client with a registry server.
+| Term | Full Form |
+|---|---|
+| Docker Engine | Core Docker Runtime Engine |
+| Docker Hub | Docker Hosted Registry Platform |
+
+---
+
+# Question 5
+
+## Question
+
+Which command is used to login to a self-hosted registry?
+
+---
 
 ## Command
+
+```bash
+docker login [SERVER]
+```
+
+---
+
+## Example
 
 ```bash
 docker login localhost:5000
@@ -89,7 +143,13 @@ docker login localhost:5000
 
 ---
 
-# Command Breakdown
+## Explanation
+
+This command authenticates the Docker client with a registry server.
+
+---
+
+## Command Breakdown
 
 | Part | Meaning |
 |---|---|
@@ -99,18 +159,28 @@ docker login localhost:5000
 
 ---
 
-# Related Registry Commands
+## Related Commands
 
 | Command | Purpose |
 |---|---|
-| docker login | Authenticate registry |
 | docker logout | Remove login session |
 | docker pull | Download image |
 | docker push | Upload image |
 
 ---
 
-# Deploying Private Docker Registry
+# Question 6
+
+## Question
+
+Deploy a registry server named `my-registry` using image `registry:2`.
+
+Requirements:
+- Container name = my-registry
+- Port mapping = 5000:5000
+- Restart policy = always
+
+---
 
 ## Command
 
@@ -120,42 +190,47 @@ docker run -d --name my-registry --restart always -p 5000:5000 registry:2
 
 ---
 
-# Command Explanation
+## Command Breakdown
 
 | Part | Meaning |
 |---|---|
 | docker run | Create and start container |
 | -d | Detached mode |
 | --name my-registry | Assign container name |
-| --restart always | Restart automatically after reboot |
+| --restart always | Restart automatically |
 | -p 5000:5000 | Port mapping |
 | registry:2 | Docker registry image |
 
 ---
 
-# Registry Architecture Flow
+## Learning
 
-```text
-Docker Hub / Registry
-        ↓
-   docker pull
-        ↓
-   Local Images
-        ↓
-   docker run
-        ↓
-    Container
-        ↓
-   docker push
-        ↓
- Private Registry
-```
+This command creates a local private Docker registry running on port 5000.
 
 ---
 
-# Pulling Docker Images
+## Full Forms
 
-## Commands
+| Term | Full Form |
+|---|---|
+| CLI | Command Line Interface |
+| TCP | Transmission Control Protocol |
+
+---
+
+# Question 7
+
+## Question
+
+Push the following images to local registry:
+- nginx:latest
+- httpd:latest
+
+---
+
+# Step 1: Pull Images
+
+## Command
 
 ```bash
 docker pull nginx:latest
@@ -164,15 +239,19 @@ docker pull httpd:latest
 
 ---
 
-# Purpose
+## Explanation
 
-Downloads images from Docker Hub into local Docker image storage.
+| Command | Meaning |
+|---|---|
+| docker pull | Download image |
+| nginx:latest | Latest NGINX image |
+| httpd:latest | Latest Apache HTTP Server image |
 
 ---
 
-# Image Tagging
+# Step 2: Tag Images
 
-## Commands
+## Command
 
 ```bash
 docker tag nginx:latest localhost:5000/nginx:latest
@@ -181,27 +260,20 @@ docker tag httpd:latest localhost:5000/httpd:latest
 
 ---
 
-# Why Tagging is Required
+## Explanation
 
-Docker needs registry reference information before pushing images.
-
-Tag format:
-
-```text
-REGISTRY/IMAGE:TAG
-```
-
-Example:
-
-```text
-localhost:5000/nginx:latest
-```
+| Part | Meaning |
+|---|---|
+| docker tag | Create another image reference |
+| localhost:5000 | Local registry |
+| nginx:latest | Original image |
+| localhost:5000/nginx:latest | New tagged image |
 
 ---
 
-# Docker Push
+# Step 3: Push Images
 
-## Commands
+## Command
 
 ```bash
 docker push localhost:5000/nginx:latest
@@ -210,13 +282,17 @@ docker push localhost:5000/httpd:latest
 
 ---
 
-# Purpose
+## Explanation
 
-Uploads images into local private registry.
+| Part | Meaning |
+|---|---|
+| docker push | Upload image |
+| localhost:5000 | Registry server |
+| nginx:latest | Image repository |
 
 ---
 
-# Registry Verification
+# Verify Images in Registry
 
 ## Command
 
@@ -226,36 +302,40 @@ curl -X GET localhost:5000/v2/_catalog
 
 ---
 
-# Purpose
-
-Displays repositories stored inside registry.
-
----
-
-# Command Breakdown
+## Explanation
 
 | Part | Meaning |
 |---|---|
 | curl | Data transfer utility |
 | -X GET | HTTP GET request |
-| /v2/_catalog | Docker Registry API endpoint |
+| /v2/_catalog | Registry API endpoint |
 
 ---
 
-# Dangling Images
+## Learning
 
-## Definition
-
-Dangling images are:
-- untagged images
-- unused layers
-- leftover build images
-
-These consume unnecessary storage space.
+This verifies uploaded images stored inside local registry.
 
 ---
 
-# Remove Dangling Images
+## Full Forms
+
+| Term | Full Form |
+|---|---|
+| HTTP | HyperText Transfer Protocol |
+| API | Application Programming Interface |
+| NGINX | Engine X |
+| HTTPD | HyperText Transfer Protocol Daemon |
+
+---
+
+# Question 8
+
+## Question
+
+Remove dangling images locally.
+
+---
 
 ## Command
 
@@ -265,17 +345,28 @@ docker image prune -a
 
 ---
 
-# Command Breakdown
+## Explanation
 
 | Part | Meaning |
 |---|---|
-| docker image | Image management |
+| docker image | Manage images |
 | prune | Remove unused objects |
 | -a | Remove all unused images |
 
 ---
 
-# List Docker Images
+# What are Dangling Images?
+
+Dangling images are:
+- untagged images
+- unused layers
+- leftover build images
+
+These consume unnecessary disk space.
+
+---
+
+# Verification Command
 
 ## Command
 
@@ -283,19 +374,45 @@ docker image prune -a
 docker image ls
 ```
 
-Displays all locally stored images.
+---
+
+## Purpose
+
+Displays all locally stored Docker images.
 
 ---
 
-# Stopping and Removing Registry
+# Question 10
 
-## Stop Container
+## Question
+
+Stop and remove `my-registry` container.
+
+---
+
+# Step 1: Check Running Containers
+
+## Command
+
+```bash
+docker ps
+```
+
+---
+
+## Step 2: Stop Container
+
+## Command
 
 ```bash
 docker stop my-registry
 ```
 
-## Remove Container
+---
+
+## Step 3: Remove Container
+
+## Command
 
 ```bash
 docker rm my-registry
@@ -303,7 +420,7 @@ docker rm my-registry
 
 ---
 
-# Combined Command
+## Combined Command
 
 ```bash
 docker stop my-registry && docker rm my-registry
@@ -311,11 +428,11 @@ docker stop my-registry && docker rm my-registry
 
 ---
 
-# Logical AND Operator
+## Explanation
 
 | Symbol | Meaning |
 |---|---|
-| && | Run second command only if first succeeds |
+| && | Run second command if first succeeds |
 
 ---
 
@@ -325,31 +442,45 @@ docker stop my-registry && docker rm my-registry
 |---|---|
 | docker pull | Download image |
 | docker push | Upload image |
-| docker tag | Create image reference |
-| docker login | Registry authentication |
+| docker tag | Tag image |
+| docker login | Authenticate registry |
 | docker logout | Logout registry |
+| docker image ls | List images |
 | docker image prune -a | Remove unused images |
 
 ---
 
-# Docker Lab 9
-# Docker Networking and Multi-Container Communication
+# Docker Registry Architecture Flow
 
-# Docker Networking
-
-Docker networking allows containers to communicate:
-- with each other
-- with host machine
-- with external systems
-
-Every Docker container receives:
-- IP address
-- virtual network interface
-- network namespace
+```text
+Docker Registry
+      ↓
+docker pull
+      ↓
+Local Images
+      ↓
+docker run
+      ↓
+Container
+      ↓
+docker push
+      ↓
+Private Registry
+```
 
 ---
 
-# List Docker Networks
+# Docker Lab 9
+
+# Docker Networking
+
+## Question 1
+
+### Question
+
+Identify the number of Docker networks existing on the system.
+
+---
 
 ## Command
 
@@ -359,50 +490,75 @@ docker network ls
 
 ---
 
-# Default Docker Networks
+## Output
+
+```text
+bridge
+host
+none
+```
+
+---
+
+## Answer
+
+```text
+3
+```
+
+---
+
+## Command Breakdown
+
+| Part | Meaning |
+|---|---|
+| docker | Docker CLI |
+| network | Manage Docker networks |
+| ls | List networks |
+
+---
+
+## Docker Default Networks
 
 | Network | Meaning |
 |---|---|
-| bridge | Default isolated Docker network |
-| host | Uses host machine networking |
+| bridge | Default isolated network |
+| host | Shares host networking |
 | none | No networking attached |
 
 ---
 
-# Bridge Network
+# Question 2
 
-Bridge is Docker’s default isolated network.
+## Question
 
-Characteristics:
-- containers communicate internally
-- isolated from host network
-- Docker creates virtual bridge interface
+What is the ID associated with bridge network?
 
 ---
 
-# Host Network
+## Command
 
-Host network mode allows containers to share host networking stack.
-
-Characteristics:
-- no isolation
-- container uses host IP directly
-- higher performance
+```bash
+docker network ls
+```
 
 ---
 
-# None Network
+## Answer
 
-None network disables networking completely.
-
-Characteristics:
-- no internet access
-- no container communication
-- fully isolated
+```text
+3cf7221ecd61
+```
 
 ---
 
-# Inspecting Container Network
+# Question 3
+
+## Question
+
+We just ran a container named alpine-1. Identify the network it is attached to.
+
+---
 
 ## Command
 
@@ -412,18 +568,39 @@ docker inspect alpine-1 | grep -i net
 
 ---
 
-# Important Output
+## Important Output
 
 ```text
 "NetworkMode": "host"
 ```
 
-Meaning:
-- container uses host networking
+---
+
+## Answer
+
+```text
+host
+```
 
 ---
 
-# Inspecting Bridge Network
+## Concepts
+
+| Term | Meaning |
+|---|---|
+| inspect | Detailed object information |
+| NetworkMode | Networking mode used |
+| host mode | Container shares host networking |
+
+---
+
+# Question 4
+
+## Question
+
+What is the subnet configured on bridge network?
+
+---
 
 ## Command
 
@@ -433,7 +610,7 @@ docker network inspect bridge | grep -i subnet
 
 ---
 
-# Output
+## Output
 
 ```text
 "Subnet": "172.12.0.0/24"
@@ -441,22 +618,21 @@ docker network inspect bridge | grep -i subnet
 
 ---
 
-# Subnet Meaning
-
-A subnet is a logical network segment.
-
-Example:
+## Answer
 
 ```text
 172.12.0.0/24
 ```
 
-Meaning:
-- network range allocated to Docker bridge network
-
 ---
 
-# Creating Container Without Networking
+# Question 5
+
+## Question
+
+Run a container named alpine-2 using the alpine image and attach it to the none network.
+
+---
 
 ## Command
 
@@ -466,16 +642,28 @@ docker run --name alpine-2 --network none alpine
 
 ---
 
-# Purpose
+## Command Breakdown
 
-Creates container with:
-- no internet access
-- no external communication
-- isolated networking
+| Part | Meaning |
+|---|---|
+| run | Create and start container |
+| --name alpine-2 | Container name |
+| --network none | Disable networking |
+| alpine | Image name |
 
 ---
 
-# Creating Custom Docker Network
+# Question 6
+
+## Question
+
+Create a new network named `wp-mysql-network` using bridge driver.
+
+Requirements:
+- Subnet = 182.18.0.0/24
+- Gateway = 182.18.0.1
+
+---
 
 ## Command
 
@@ -485,39 +673,40 @@ docker network create --driver bridge --subnet 182.18.0.0/24 --gateway 182.18.0.
 
 ---
 
-# Command Breakdown
+## Command Breakdown
 
 | Part | Meaning |
 |---|---|
 | network create | Create Docker network |
-| --driver bridge | Use bridge driver |
+| --driver bridge | Use bridge networking |
 | --subnet | Define subnet |
-| --gateway | Define gateway IP |
+| --gateway | Define gateway |
 | wp-mysql-network | Network name |
 
 ---
 
-# CIDR Notation
+## Concepts
 
-CIDR means:
-
-```text
-Classless Inter-Domain Routing
-```
-
-Example:
-
-```text
-182.18.0.0/24
-```
-
-Defines:
-- network range
-- subnet mask
+| Term | Meaning |
+|---|---|
+| subnet | Logical IP network segment |
+| gateway | Entry/exit point of network |
+| CIDR | Classless Inter-Domain Routing |
 
 ---
 
-# Deploying MySQL Database
+# Question 7
+
+## Question
+
+Deploy MySQL database container using image `mysql:5.7`.
+
+Requirements:
+- Container name = mysql-db
+- Attach to wp-mysql-network
+- Root password = db_pass123
+
+---
 
 ## Command
 
@@ -527,27 +716,38 @@ docker run -d -e MYSQL_ROOT_PASSWORD=db_pass123 --name mysql-db --network wp-mys
 
 ---
 
-# Purpose
+## Command Breakdown
 
-Deploys MySQL container connected to custom Docker network.
+| Part | Meaning |
+|---|---|
+| -d | Detached mode |
+| -e | Environment variable |
+| MYSQL_ROOT_PASSWORD | Root password variable |
+| --name mysql-db | Container name |
+| --network | Attach network |
+| mysql:5.7 | MySQL image |
 
 ---
 
-# Environment Variables
+# Question 8
 
-Example:
+## Question
 
-```bash
--e MYSQL_ROOT_PASSWORD=db_pass123
+Deploy web application using image:
+
+```text
+kodekloud/simple-webapp-mysql
 ```
 
-Purpose:
-- configure container during startup
-- pass runtime settings
+Requirements:
+- Host port = 38080
+- Container port = 8080
+- Attach to wp-mysql-network
+- Environment variables:
+  - DB_Host=mysql-db
+  - DB_Password=db_pass123
 
 ---
-
-# Deploying Web Application
 
 ## Command
 
@@ -557,11 +757,11 @@ docker run --network=wp-mysql-network -e DB_Host=mysql-db -e DB_Password=db_pass
 
 ---
 
-# Command Breakdown
+## Command Breakdown
 
 | Part | Meaning |
 |---|---|
-| --network | Attach network |
+| --network | Attach Docker network |
 | -e DB_Host=mysql-db | Database hostname |
 | -e DB_Password=db_pass123 | Database password |
 | -p 38080:8080 | Port mapping |
@@ -573,46 +773,44 @@ docker run --network=wp-mysql-network -e DB_Host=mysql-db -e DB_Password=db_pass
 
 # Port Mapping
 
-Port mapping format:
-
 ```text
 HOST_PORT:CONTAINER_PORT
-```
-
-Example:
-
-```text
 38080:8080
 ```
 
 Meaning:
-- browser accesses host port 38080
-- traffic forwards to container port 8080
+- Browser accesses port 38080
+- Request forwarded to container port 8080
 
 ---
 
-# Multi-Container Communication
+# Question 9
 
-The web application successfully communicated with MySQL because:
-- both containers shared same Docker network
-- correct environment variables were passed
-- Docker networking resolved container names internally
+## Verification
 
----
-
-# Docker Networking Architecture
+Open browser:
 
 ```text
-Browser
-   ↓
-Host Port 38080
-   ↓
-Web Application Container
-   ↓
-Docker Network
-   ↓
-MySQL Container
+HOST:38080
 ```
+
+---
+
+## Result
+
+```text
+SUCCESS
+Successfully connected to the MySQL database.
+```
+
+---
+
+## Meaning
+
+The web application successfully:
+- connected to MySQL
+- used environment variables correctly
+- communicated through Docker network
 
 ---
 
@@ -620,8 +818,8 @@ MySQL Container
 
 | Network Type | Meaning |
 |---|---|
-| bridge | Default isolated network |
-| host | Uses host networking |
+| bridge | Default isolated Docker network |
+| host | Shares host network stack |
 | none | No networking |
 | custom bridge | User-created isolated network |
 
@@ -632,64 +830,48 @@ MySQL Container
 | Command | Purpose |
 |---|---|
 | docker network ls | List networks |
-| docker network inspect | Inspect network |
-| docker network create | Create network |
+| docker network inspect | Network details |
 | docker inspect | Container details |
-| docker run | Create container |
+| docker network create | Create network |
+| docker run | Create/start container |
 | docker ps | Running containers |
 
 ---
 
-# Full Forms
+# Overall Lab Objectives
 
-| Short Form | Full Form |
-|---|---|
-| CLI | Command Line Interface |
-| TCP | Transmission Control Protocol |
-| HTTP | HyperText Transfer Protocol |
-| API | Application Programming Interface |
-| CIDR | Classless Inter-Domain Routing |
-| IP | Internet Protocol |
-| DNS | Domain Name System |
-| NGINX | Engine X |
-| HTTPD | HyperText Transfer Protocol Daemon |
-
----
-
-# Key Learning Outcomes
-
-After completing Docker Lab 8 and Docker Lab 9, the following concepts became clear:
-
-- Docker image distribution
-- Docker Registry architecture
-- Private registry deployment
-- Docker image tagging and pushing
-- Registry authentication
-- Docker networking modes
-- Bridge networking
-- Host networking
-- None networking
-- Custom Docker networks
-- Multi-container communication
-- Environment variables in Docker
-- Port mapping and forwarding
-- MySQL and web application integration
+These labs helped understand:
+1. Docker Registry architecture
+2. Image tagging and pushing
+3. Private registry deployment
+4. Docker network inspection
+5. Bridge networking
+6. Host networking
+7. None networking
+8. Custom Docker networks
+9. Multi-container communication
+10. MySQL container deployment
+11. Environment variables
+12. Port forwarding
+13. Web application deployment
+14. Container networking architecture
 
 ---
 
 # Conclusion
 
-Docker Lab 8 and Docker Lab 9 provided strong practical understanding of:
-- Docker Registry management
-- Image distribution workflows
-- Docker networking architecture
-- Multi-container application deployment
+Docker Lab 8 and Docker Lab 9 provided practical understanding of Docker image distribution systems and Docker networking architecture.
 
-These concepts are essential for:
+The labs demonstrated:
+- how Docker registries manage image storage and distribution
+- how Docker networks isolate and connect containers
+- how multi-container applications communicate
+- how databases and applications interact inside custom networks
+
+These concepts are fundamental in:
 - DevOps engineering
 - Cloud infrastructure
 - Container orchestration
 - Backend deployment
-- Production container environments
-
-Understanding Docker networking and registries is fundamental for building scalable, secure, and distributed containerized systems.
+- Microservices architecture
+- Cybersecurity infrastructure

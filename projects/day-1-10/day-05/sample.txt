@@ -1,0 +1,27 @@
+John's email is john.doe@gmail.com
+
+Company support:
+support@company.org
+admin123@yahoo.com
+
+Visit our websites:
+https://www.google.com
+http://example.org/login
+www.github.com
+
+Server IP addresses:
+192.168.1.1
+8.8.8.8
+172.16.0.5
+
+Random text:
+The backup server is available at 10.0.0.25.
+Contact security-team@cyberlabs.net immediately.
+
+More URLs:
+https://openai.com
+www.stackoverflow.com/questions
+
+Fake data:
+username=test_user
+password=MyPass@123

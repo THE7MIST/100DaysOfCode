@@ -1,119 +1,283 @@
-# Day 21 - HTTPS Website Deployment using Apache HTTPD and SSL
+# Deploy HTTPS Website Using Sub CA Certificate
 
 ## Objective
 
-Deploy a secure HTTPS website (`www.mist.ac.in`) using Apache HTTPD and SSL/TLS certificates on a RHEL/CentOS/Rocky/AlmaLinux-based Linux system.
+Deploy a HTTPS website (`www.mist.ac.in`) using a server certificate issued by a **Sub CA**.
+
+### Requirements
+
+* Domain: `www.mist.ac.in`
+* `subjectAltName` must contain `www.mist.ac.in`
+* DNS should resolve `www.mist.ac.in → Web Server IP`
+* Root CA must **not** sign server certificates directly
+* Sub CA must issue server certificate
+* Apache must use Server Certificate + Sub CA Chain
 
 ---
 
-# Verify Operating System
-
-Check Linux distribution:
+# Step 1: Create Root CA Private Key
 
 ```bash
-cat /etc/os-release
+openssl genpkey -algorithm RSA -out root.key
 ```
 
-Observation:
+### Attributes
 
-* Ubuntu uses `apache2`
-* RHEL/CentOS/Rocky/AlmaLinux use `httpd`
+| Option         | Purpose              |
+| -------------- | -------------------- |
+| genpkey        | Generate private key |
+| -algorithm RSA | Use RSA algorithm    |
+| -out root.key  | Save key to file     |
 
 ---
 
-# Install Apache and SSL Module
-
-Install Apache HTTP Server:
+# Step 2: Create Root CA CSR
 
 ```bash
-dnf install httpd -y
+openssl req -new -key root.key -out root.csr
 ```
 
-Install SSL module:
+### Attributes
 
-```bash
-dnf install mod_ssl -y
-```
+| Option        | Purpose          |
+| ------------- | ---------------- |
+| req           | CSR utility      |
+| -new          | Create CSR       |
+| -key root.key | Root private key |
+| -out root.csr | Output CSR       |
 
 ---
 
-# Start and Enable Apache
+# Step 3: Create Self-Signed Root CA Certificate
 
 ```bash
-systemctl enable httpd
-systemctl start httpd
-systemctl status httpd
+openssl x509 -req -in root.csr -signkey root.key -out root.crt -days 3650
 ```
 
-Purpose:
+### Attributes
 
-* Enable service at boot
-* Start web server
-* Verify service status
+| Option            | Purpose               |
+| ----------------- | --------------------- |
+| x509              | Certificate utility   |
+| -req              | Input is CSR          |
+| -in root.csr      | CSR file              |
+| -signkey root.key | Self-sign certificate |
+| -out root.crt     | Certificate file      |
+| -days 3650        | Valid for 10 years    |
 
 ---
 
-# Configure Firewall
-
-Allow HTTP:
+# Step 4: Verify Root Certificate
 
 ```bash
-firewall-cmd --permanent --add-service=http
-```
-
-Allow HTTPS:
-
-```bash
-firewall-cmd --permanent --add-service=https
-```
-
-Reload firewall:
-
-```bash
-firewall-cmd --reload
-```
-
----
-
-# Create Website Directory
-
-```bash
-mkdir -p /var/www/mist
-```
-
-Create test webpage:
-
-```bash
-echo "<h1>Welcome to www.mist.ac.in</h1>" > /var/www/mist/index.html
+openssl x509 -in root.crt -text -noout
 ```
 
 ---
 
-# Set Permissions
-
-For RHEL-based systems:
+# Step 5: Create Sub CA Extension File
 
 ```bash
-chown -R apache:apache /var/www/mist
+nano sub.ext
 ```
 
-or
+### Contents
+
+```ini
+basicConstraints=critical,CA:TRUE,pathlen:0
+keyUsage=critical,keyCertSign,cRLSign
+subjectKeyIdentifier=hash
+authorityKeyIdentifier=keyid,issuer
+```
+
+### Purpose
+
+| Extension   | Description               |
+| ----------- | ------------------------- |
+| CA:TRUE     | Marks certificate as CA   |
+| pathlen:0   | No subordinate CA allowed |
+| keyCertSign | Can sign certificates     |
+| cRLSign     | Can sign CRLs             |
+
+---
+
+# Step 6: Generate Sub CA Private Key
 
 ```bash
-chmod -R 755 /var/www/mist
+openssl genpkey -algorithm RSA -out sub.key
 ```
 
 ---
 
-# Create Virtual Host Configuration
-
-File:
+# Step 7: Generate Sub CA CSR
 
 ```bash
-nano /etc/httpd/conf.d/mist.conf
+openssl req -new -key sub.key -out sub.csr
 ```
 
-Contents:
+---
+
+# Step 8: Issue Sub CA Certificate
+
+```bash
+openssl x509 -req \
+-in sub.csr \
+-CA root.crt \
+-CAkey root.key \
+-CAcreateserial \
+-out sub.crt \
+-days 1825 \
+-extfile sub.ext
+```
+
+### Verify
+
+```bash
+openssl x509 -in sub.crt -text -noout
+```
+
+---
+
+# Step 9: Create Server Certificate Extension File
+
+```bash
+nano server.ext
+```
+
+### Contents
+
+```ini
+basicConstraints=CA:FALSE
+keyUsage=digitalSignature,keyEncipherment
+extendedKeyUsage=serverAuth
+
+subjectAltName=@alt_names
+
+[alt_names]
+DNS.1=www.mist.ac.in
+```
+
+### Purpose
+
+| Extension        | Description           |
+| ---------------- | --------------------- |
+| CA:FALSE         | Not a CA              |
+| digitalSignature | TLS signing           |
+| keyEncipherment  | Key exchange          |
+| serverAuth       | Server authentication |
+| SAN              | Hostname validation   |
+
+---
+
+# Step 10: Generate Server Private Key
+
+```bash
+openssl genpkey -algorithm RSA -out server.key
+```
+
+---
+
+# Step 11: Generate Website CSR
+
+```bash
+openssl req -new -key server.key -out server.csr
+```
+
+### Common Name
+
+```text
+www.mist.ac.in
+```
+
+---
+
+# Step 12: Issue Website Certificate Using Sub CA
+
+```bash
+openssl x509 -req \
+-in server.csr \
+-CA sub.crt \
+-CAkey sub.key \
+-CAcreateserial \
+-out server.crt \
+-days 365 \
+-extfile server.ext
+```
+
+---
+
+# Step 13: Verify Website Certificate
+
+```bash
+openssl x509 -in server.crt -text -noout
+```
+
+### Verify
+
+* Subject = `www.mist.ac.in`
+* Issuer = Sub CA
+* SAN contains `www.mist.ac.in`
+
+---
+
+# Step 14: Create Certificate Chain
+
+```bash
+cat server.crt sub.crt > fullchain.crt
+```
+
+---
+
+# Step 15: Install Apache
+
+```bash
+sudo apt update
+sudo apt install apache2 -y
+```
+
+### Verify
+
+```bash
+sudo systemctl status apache2
+```
+
+### Enable SSL
+
+```bash
+sudo a2enmod ssl
+```
+
+---
+
+# Step 16: Create Website Directory
+
+```bash
+sudo mkdir -p /var/www/mist
+
+sudo chown -R www-data:www-data /var/www/mist
+```
+
+### Homepage
+
+```bash
+sudo nano /var/www/mist/index.html
+```
+
+Example:
+
+```html
+<h1>Welcome to www.mist.ac.in</h1>
+```
+
+---
+
+# Step 17: Configure HTTPS Virtual Host
+
+```bash
+sudo nano /etc/apache2/sites-available/mist.conf
+```
+
+### Configuration
 
 ```apache
 <VirtualHost *:443>
@@ -124,162 +288,130 @@ Contents:
 
     SSLEngine on
 
-    SSLCertificateFile /root/openssl/fullchain.crt
+    SSLCertificateFile /home/user/fullchain.crt
 
-    SSLCertificateKeyFile /root/openssl/server.key
+    SSLCertificateKeyFile /home/user/server.key
 
 </VirtualHost>
 ```
 
----
-
-# Verify Apache Configuration
-
-```bash
-httpd -t
-```
-
-Expected:
-
-```text
-Syntax OK
-```
+Replace certificate paths as required.
 
 ---
 
-# Restart Apache
+# Step 18: Configure Apache Server Name
 
 ```bash
-systemctl restart httpd
+sudo nano /etc/apache2/apache2.conf
 ```
 
-Verify:
+Add:
 
-```bash
-systemctl status httpd
+```apache
+ServerName www.mist.ac.in
 ```
 
 ---
 
-# Verify HTTPS Port
+# Step 19: Enable Website
 
 ```bash
-ss -tulnp | grep 443
-```
+sudo a2ensite mist.conf
 
-Expected:
-
-```text
-LISTEN *:443
+sudo systemctl reload apache2
 ```
 
 ---
 
-# Configure Hostname Resolution
+# Step 20: Configure Name Resolution
 
-Edit hosts file:
+### Local Testing Only
 
 ```bash
-nano /etc/hosts
+sudo nano /etc/hosts
 ```
 
 Add:
 
 ```text
-<SERVER_IP>    www.mist.ac.in
+192.168.74.178 www.mist.ac.in
 ```
 
-Example:
-
-```text
-192.168.74.178    www.mist.ac.in
-```
-
----
-
-# Test DNS Resolution
+### Verify
 
 ```bash
 ping www.mist.ac.in
+
+nslookup www.mist.ac.in
+
+getent hosts www.mist.ac.in
 ```
+
+> Note: `/etc/hosts` is only for local testing. Actual deployment requires DNS A-record pointing `www.mist.ac.in` to the web server IP.
 
 ---
 
-# Test SSL Certificate
+# Step 21: Trust Root CA
 
 ```bash
-openssl s_client -connect localhost:443 -showcerts
+sudo cp root.crt /usr/local/share/ca-certificates/rootca.crt
+
+sudo update-ca-certificates
 ```
-
-Purpose:
-
-* Verify SSL certificate chain
-* Verify HTTPS service
 
 ---
 
-# Test Website
+# Step 22: Verify Apache Configuration
 
 ```bash
-curl -k https://localhost
-```
+sudo apachectl configtest
 
-Expected:
+sudo systemctl restart apache2
 
-```html
-<h1>Welcome to www.mist.ac.in</h1>
+sudo systemctl status apache2
 ```
 
 ---
 
-# Important Differences
-
-| Ubuntu        | RHEL/Rocky/CentOS |
-| ------------- | ----------------- |
-| apache2       | httpd             |
-| a2enmod ssl   | mod_ssl package   |
-| a2ensite      | Not available     |
-| www-data      | apache            |
-| /etc/apache2/ | /etc/httpd/       |
-
----
-
-# Commands Used
+# Step 23: Verify HTTPS Website
 
 ```bash
-cat /etc/os-release
+openssl s_client -connect www.mist.ac.in:443 -showcerts
+```
 
-dnf install httpd -y
-dnf install mod_ssl -y
+```bash
+openssl s_client -connect www.mist.ac.in:443 -servername www.mist.ac.in
+```
 
-systemctl enable httpd
-systemctl start httpd
+```bash
+curl -v https://www.mist.ac.in
+```
 
-firewall-cmd --permanent --add-service=http
-firewall-cmd --permanent --add-service=https
-firewall-cmd --reload
+### Browser Test
 
-mkdir -p /var/www/mist
-
-echo "<h1>Welcome to www.mist.ac.in</h1>" > /var/www/mist/index.html
-
-chown -R apache:apache /var/www/mist
-
-nano /etc/httpd/conf.d/mist.conf
-
-httpd -t
-
-systemctl restart httpd
-
-ss -tulnp | grep 443
-
-openssl s_client -connect localhost:443 -showcerts
-
-curl -k https://localhost
+```text
+https://www.mist.ac.in
 ```
 
 ---
 
-## Conclusion
+# Expected Certificate Chain
 
-Successfully configured Apache HTTPD with SSL/TLS certificates, created a virtual host for `www.mist.ac.in`, enabled HTTPS access, configured firewall rules, and verified secure web communication using OpenSSL and Apache.
+```text
+Root CA
+   ↓
+Sub CA
+   ↓
+www.mist.ac.in
+```
+
+### Expected Result
+
+* HTTPS enabled
+* Certificate issued by Sub CA
+* Domain = [www.mist.ac.in](http://www.mist.ac.in)
+* SAN contains [www.mist.ac.in](http://www.mist.ac.in)
+* No browser warnings after trusting Root CA
+
+```
+```

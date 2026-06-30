@@ -1,30 +1,31 @@
-Simple Firewall Rule Generator
+# Simple Firewall Rule Generator
 
-Filename: "firewall_rule_generator.py"
+**Filename:** `firewall_rule_generator.py`
 
-Objective
+## Objective
 
 Write a Python program that:
 
-- Accepts one or more port numbers from the user
-- Allows the user to choose TCP or UDP
-- Generates corresponding "iptables" firewall rules
-- Displays the generated rules without executing them
+- Accepts one or more port numbers from the user.
+- Allows the user to choose **TCP** or **UDP**.
+- Generates corresponding **iptables** firewall rules.
+- Displays the generated rules without executing them.
 
 ---
 
-Concepts Covered
+## Concepts Covered
 
 - User input
 - Lists and loops
 - String formatting
 - Input validation
-- Basic Linux firewall ("iptables")
+- Basic Linux firewall (`iptables`)
 
 ---
 
-Python Script
+## Python Script
 
+```python
 def validate_ports(port_list):
     valid_ports = []
 
@@ -69,125 +70,152 @@ def main():
 
 if __name__ == "__main__":
     main()
+```
 
 ---
 
-Function Explanation
+## Function Explanation
 
-"validate_ports(port_list)"
+### `validate_ports(port_list)`
 
 Validates the list of ports entered by the user.
 
-Process
+### Process
 
-- Removes extra spaces
-- Checks whether the value is numeric
-- Converts it to an integer
-- Ensures the port is between 1 and 65535
-- Returns only valid ports
+- Removes extra spaces.
+- Checks whether the value is numeric.
+- Converts the value to an integer.
+- Ensures the port number is between **1** and **65535**.
+- Returns a list of valid ports.
 
 ---
 
-"main()"
+### `main()`
 
 Performs the following tasks:
 
 1. Reads comma-separated port numbers.
 2. Splits the input into a list.
-3. Reads the protocol (TCP or UDP).
+3. Reads the protocol (**TCP** or **UDP**).
 4. Converts the protocol to lowercase.
 5. Validates the protocol.
-6. Validates all port numbers.
-7. Generates the corresponding "iptables" rules.
+6. Validates all entered port numbers.
+7. Generates the corresponding **iptables** rules.
 
 ---
 
-Example Run
+## Example Run
 
-Input
+### Input
 
+```text
 Enter ports (comma separated): 22,80,443
 Protocol (tcp/udp): tcp
+```
 
-Output
+### Output
 
+```text
 Generated iptables Rules:
 
 iptables -A INPUT -p tcp --dport 22 -j ACCEPT
 iptables -A INPUT -p tcp --dport 80 -j ACCEPT
 iptables -A INPUT -p tcp --dport 443 -j ACCEPT
+```
 
 ---
 
-Sample Generated Rules
+## Sample Generated Rules
 
+```bash
 iptables -A INPUT -p tcp --dport 22 -j ACCEPT
 iptables -A INPUT -p tcp --dport 80 -j ACCEPT
 iptables -A INPUT -p tcp --dport 443 -j ACCEPT
+```
 
 ---
 
-Input Validation
+## Input Validation
 
-Invalid Port
+### Invalid Port
 
-Input:
+#### Input
 
+```text
 22,70000,80
+```
 
-Output:
+#### Output
 
+```text
 Invalid port: 70000
+```
 
 ---
 
-Invalid Input
+### Invalid Input
 
-Input:
+#### Input
 
+```text
 22,http,80
+```
 
-Output:
+#### Output
 
+```text
 Invalid input: http
+```
 
 ---
 
-Invalid Protocol
+### Invalid Protocol
 
-Input:
+#### Input
 
+```text
 Protocol (tcp/udp): icmp
+```
 
-Output:
+#### Output
 
+```text
 Invalid protocol.
+```
 
 ---
 
-Possible Enhancements
+## Possible Enhancements
 
-- Support both "ACCEPT" and "DROP" actions
-- Generate "OUTPUT" and "FORWARD" chain rules
-- Save generated rules to a shell script (".sh")
-- Allow rules for specific source IP addresses
-- Generate equivalent UFW or firewalld commands
-- Remove duplicate ports automatically
-
----
-
-Note
-
-This program only generates "iptables" commands. It does not execute them, making it safe for learning, testing, and understanding Linux firewall rule syntax.
+- Support both **ACCEPT** and **DROP** actions.
+- Generate **OUTPUT** and **FORWARD** chain rules.
+- Save generated rules to a shell script (`.sh`).
+- Allow rules for specific source IP addresses.
+- Generate equivalent **UFW** or **firewalld** commands.
+- Remove duplicate ports automatically.
 
 ---
 
-Result
+## Note
 
-The program successfully accepts valid port numbers and a protocol, validates the input, and generates the corresponding "iptables" firewall rules for the user.
+This program only **generates** `iptables` commands. It does **not** execute them, making it safe for learning, testing, and understanding Linux firewall rule syntax.
 
 ---
 
-Conclusion
+## Result
 
-This project demonstrates how Python can automate the generation of Linux firewall rules using basic programming concepts such as user input, validation, loops, lists, and string formatting.
+The program successfully accepts valid port numbers and a protocol, validates the input, and generates the corresponding **iptables** firewall rules.
+
+---
+
+## Conclusion
+
+This project demonstrates how Python can automate the generation of Linux firewall rules using basic programming concepts such as:
+
+- User input
+- Input validation
+- Lists
+- Loops
+- String formatting
+
+It provides a simple and safe way to understand how firewall rules are constructed without modifying the system firewall.

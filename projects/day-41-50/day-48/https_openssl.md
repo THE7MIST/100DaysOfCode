@@ -1,4 +1,5 @@
 # PKI HTTPS Verification Troubleshooting Notes
+https://github.com/THE7MIST/pki/tree/main/CA_cer
 
 ## Situation
 

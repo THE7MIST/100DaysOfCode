@@ -1,4 +1,4 @@
-# Day 49/100
+# Day 50/100
 
 ## MCQ Arena Progress
 

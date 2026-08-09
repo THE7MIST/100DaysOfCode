@@ -1,0 +1,5 @@
+Day 79/100
+
+Continued TryHackMe practice with computer-system fundamentals — identifying CPU, RAM, storage, PSU, GPU, network adapters, and understanding how these hardware components work together.
+
+#100DaysOfCode #TryHackMe #CyberSecurity #ComputerFundamentals

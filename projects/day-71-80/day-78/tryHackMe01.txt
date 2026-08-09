@@ -1,0 +1,5 @@
+Day 78/100
+
+Continued hands-on cybersecurity practice with TryHackMe, covering operating-system fundamentals, user management, filesystem navigation, and basic offensive and defensive security concepts.
+
+#100DaysOfCode #CyberSecurity #TryHackMe #Linux

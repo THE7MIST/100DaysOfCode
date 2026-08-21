@@ -1,7 +1,7 @@
 # Python File Integrity Monitor
 
 ## Overview
-
+ 
 A lightweight **File Integrity Monitoring (FIM)** script built with Python.
 
 The script continuously monitors a file and uses **SHA-256 hashing** to detect whether its contents have been modified.
